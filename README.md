@@ -1,21 +1,26 @@
-# Dashboard Tempo di Stock Magazzino 📦
+# Dashboard Tempo di Stock & Ciclo di Vita Magazzino 📦
 
-Una dashboard interattiva creata in Python con **Streamlit** per l'analisi dei tempi di giacenza della merce in magazzino. L'applicazione incrocia i dati di Entrata e Uscita applicando una logica **FIFO** (First-In, First-Out) per calcolare il tempo esatto di permanenza in magazzino per ogni articolo, aiutando a identificare inefficienze, stagionalità e performance dei produttori.
+Una dashboard interattiva creata in Python con **Streamlit** per l'analisi completa dei tempi di giacenza della merce, dall'ingresso in magazzino centrale fino alla vendita finale in negozio. L'applicazione incrocia i dati logistici e di cassa applicando una logica **FIFO a cascata** (First-In, First-Out) per calcolare il tempo esatto del ciclo di vita per ogni articolo.
 
 ## 🌟 Funzionalità Principali
 
-- **Calcolo Logico FIFO:** Accoppia in automatico gli arrivi con le spedizioni in base ai codici a barre, determinando esattamente i giorni di sosta per ogni singolo pacco.
-- **Filtri Dinamici Multiselezione:** Permette di analizzare i dati filtrando contemporaneamente per Range di Date, Categoria, Linea, Stagione e Produttore.
-- **KPI Riepilogativi:** Visualizzazione immediata di Metriche chiave come il Tempo Medio di Giacenza e i Volumi movimentati.
-- **Analisi per Categoria (Bar Chart):** Scopri rapidamente quali sono le categorie di prodotto che rimangono più a lungo a prendere polvere.
-- **Distribuzione Outlier (Box-Plot):** Evidenzia dispersioni e picchi anomali di giacenza per ogni Linea di prodotto.
-- **Heatmap Produttori vs Stagioni:** Una tabella termica interattiva per incrociare le performance dei fornitori in base alle collezioni/stagionalità.
+- **Calcolo Logico FIFO a Cascata:** Accoppia in automatico gli arrivi dal fornitore con le spedizioni ai negozi, e infine con lo scontrino emesso, determinando:
+  - *Tempo di Magazzino:* Giorni di attesa nel polo logistico.
+  - *Tempo di Scaffale:* Giorni di permanenza nel punto vendita prima dell'acquisto.
+  - *Lead Time Totale:* Il ciclo di vita completo del prodotto.
+- **Filtri Dinamici Multiselezione:** Permette di analizzare i dati filtrando per Periodo, Negozio, Categoria, Linea, Stagione e Produttore.
+- **KPI Riepilogativi:** Visualizzazione immediata di metriche chiave per individuare dove la merce è più lenta (Magazzino vs Scaffale).
+- **Analisi Comparativa (Stacked Bar Charts):** Grafici a barre bicolore per "Top Linee" e "Top Produttori" che separano visivamente il tempo perso in magazzino da quello perso in negozio.
+- **Heatmap delle Performance (Matrici):** Tabelle termiche interattive con sfondo "intelligente" per incrociare le performance dei Negozi per:
+  - *Categoria*
+  - *Linea*
+  - *Produttore*
 
 ## 🛠️ Tecnologie Utilizzate
 
 - **Python 3**
 - **Streamlit** (Interfaccia Grafica e Web App)
-- **Pandas** (Elaborazione Dati e Logica FIFO)
+- **Pandas** (Elaborazione Dati e logica FIFO avanzata)
 - **Plotly** (Grafici interattivi)
 - **OpenPyXL** (Lettura file Excel)
 
@@ -34,10 +39,11 @@ Una dashboard interattiva creata in Python con **Streamlit** per l'analisi dei t
    ```
 
 3. **Inserisci i dati:**
-   Assicurati di inserire i tuoi due file Excel nella cartella principale del progetto, nominandoli:
+   Assicurati di inserire i tuoi file Excel nella cartella principale del progetto, nominandoli esattamente:
    - `ENTRATE MAGAZZINO.xlsx`
    - `USCITE MAGAZZINO.xlsx`
-   *(Nota: i file Excel originali sono esclusi dalla repository per motivi di privacy)*
+   - `VENDITE.xlsx` *(Opzionale: se presente abiliterà il calcolo del Tempo di Scaffale)*
+   *(Nota: i file Excel originali non devono essere committati per motivi di privacy)*
 
 4. **Avvia l'applicazione:**
    ```bash
@@ -47,10 +53,10 @@ Una dashboard interattiva creata in Python con **Streamlit** per l'analisi dei t
 
 ## 📁 Struttura del Progetto
 
-- `app.py`: File principale che renderizza l'interfaccia utente in Streamlit.
-- `data_loader.py`: Motore logico in background che si occupa di pulire i dati e applicare l'algoritmo FIFO.
+- `app.py`: File principale che renderizza l'interfaccia utente, i grafici e i filtri in Streamlit.
+- `data_loader.py`: Motore logico in background che si occupa di pulire i dati e applicare il doppio algoritmo FIFO per calcolare le metriche storiche.
 - `requirements.txt`: Elenco delle librerie Python necessarie.
 - `logo.png`: Favicon dell'applicazione.
 
 ## 📝 Licenza
-Questo progetto è sviluppato per uso interno/analisi dati.
+Questo progetto è sviluppato per uso interno/analisi dati logistici.
