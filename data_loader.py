@@ -78,6 +78,7 @@ def load_and_process_data(entrate_path, uscite_path, vendite_path=None):
     df_matched = pd.DataFrame(matched_records)
     
     # FASE 2: USCITE -> VENDITE (Tempo di Scaffale e Lead Time Totale)
+    df_vendite = None
     if vendite_path:
         df_vendite = pd.read_excel(vendite_path)
         df_vendite.columns = df_vendite.columns.str.strip()
@@ -88,7 +89,8 @@ def load_and_process_data(entrate_path, uscite_path, vendite_path=None):
                 break
                 
         df_vendite['Data Vendita'] = pd.to_datetime(df_vendite['Data Vendita'])
-        df_vendite = df_vendite.sort_values(by='Data Vendita').reset_index(drop=True)
+        df_vendite.rename(columns={'Data Vendita': 'Data_Vendita'}, inplace=True)
+        df_vendite = df_vendite.sort_values(by='Data_Vendita').reset_index(drop=True)
         df_vendite = df_vendite.dropna(subset=['Barcode', 'Quantita_Venduta'])
         
         # Coda delle uscite per Barcode
@@ -114,7 +116,7 @@ def load_and_process_data(entrate_path, uscite_path, vendite_path=None):
         for idx, row in df_vendite.iterrows():
             barcode = row['Barcode']
             qta_vendita = row['Quantita_Venduta']
-            data_vendita = row['Data Vendita']
+            data_vendita = row['Data_Vendita']
             negozio_vendita = row.get('Negozio', 'N/D')
             
             if barcode in uscite_dict:
@@ -152,4 +154,4 @@ def load_and_process_data(entrate_path, uscite_path, vendite_path=None):
                         
         df_matched = pd.DataFrame(full_lifecycle_records)
         
-    return df_entrate, df_uscite, df_matched
+    return df_entrate, df_uscite, df_matched, df_vendite

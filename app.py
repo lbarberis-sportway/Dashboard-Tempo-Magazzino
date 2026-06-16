@@ -59,9 +59,9 @@ try:
     with st.spinner("Caricamento ed elaborazione dati in corso (FIFO)..."):
         import os
         if os.path.exists(VENDITE_PATH):
-            df_entrate, df_uscite, df_matched = load_and_process_data(ENTRATE_PATH, USCITE_PATH, VENDITE_PATH)
+            df_entrate, df_uscite, df_matched, df_vendite = load_and_process_data(ENTRATE_PATH, USCITE_PATH, VENDITE_PATH)
         else:
-            df_entrate, df_uscite, df_matched = load_and_process_data(ENTRATE_PATH, USCITE_PATH)
+            df_entrate, df_uscite, df_matched, df_vendite = load_and_process_data(ENTRATE_PATH, USCITE_PATH)
 except Exception as e:
     st.error(f"Errore durante il caricamento dei dati: {e}")
     st.stop()
@@ -119,6 +119,24 @@ if sel_stagione:
 if sel_produttore:
     df_filtered = df_filtered[df_filtered['Produttore'].isin(sel_produttore)]
 
+if has_vendite and df_vendite is not None:
+    df_vendite_filtered = df_vendite.copy()
+    if len(date_range) == 2:
+        df_vendite_filtered = df_vendite_filtered[
+            (df_vendite_filtered['Data_Vendita'].dt.date >= start_date) &
+            (df_vendite_filtered['Data_Vendita'].dt.date <= end_date)
+        ]
+    if sel_negozio:
+        df_vendite_filtered = df_vendite_filtered[df_vendite_filtered['Negozio'].isin(sel_negozio)]
+    if sel_categoria:
+        df_vendite_filtered = df_vendite_filtered[df_vendite_filtered['Categoria'].isin(sel_categoria)]
+    if sel_linea:
+        df_vendite_filtered = df_vendite_filtered[df_vendite_filtered['Linea'].isin(sel_linea)]
+    if sel_stagione:
+        df_vendite_filtered = df_vendite_filtered[df_vendite_filtered['Stagione'].isin(sel_stagione)]
+    if sel_produttore:
+        df_vendite_filtered = df_vendite_filtered[df_vendite_filtered['Produttore'].isin(sel_produttore)]
+
 st.markdown("---")
 
 # SEZIONE KPI
@@ -128,7 +146,7 @@ if has_vendite:
     tempo_medio = df_filtered['Lead_Time_Totale_Giorni'].mean()
     tempo_scaffale = df_filtered['Tempo_di_Scaffale_Giorni'].mean()
     tempo_magazzino = df_filtered['Tempo_di_Stock_Giorni'].mean()
-    tot_qta = df_filtered['Quantita'].sum()
+    tot_qta = df_vendite_filtered['Quantita_Venduta'].sum()
     
     with col1:
         st.markdown(f'<div class="metric-card"><div class="metric-value">{format_it(tempo_magazzino, 1)} gg</div><div class="metric-label">Tempo Medio Magazzino</div></div>', unsafe_allow_html=True)
@@ -174,6 +192,22 @@ if has_vendite:
     fig_stack.update_layout(barmode='stack', template='plotly_dark', margin=dict(l=0, r=0, t=30, b=0), separators=",.")
     st.plotly_chart(fig_stack, use_container_width=True)
     
+    st.subheader("Dettaglio Tempi per Categoria")
+    df_cat_detail = df_cat.rename(columns={
+        'Tempo_di_Stock_Giorni': 'Tempo Magazzino (gg)',
+        'Tempo_di_Scaffale_Giorni': 'Tempo Scaffale (gg)',
+        'Lead_Time_Totale_Giorni': 'Lead Time Totale (gg)',
+    })
+    df_cat_detail['Incidenza Magazzino (%)'] = (
+        df_cat_detail['Tempo Magazzino (gg)'] / df_cat_detail['Lead Time Totale (gg)'] * 100
+    ).round(1)
+    styled = (df_cat_detail.style
+        .format({'Tempo Magazzino (gg)': '{:.1f}', 'Tempo Scaffale (gg)': '{:.1f}',
+                 'Lead Time Totale (gg)': '{:.1f}', 'Incidenza Magazzino (%)': '{:.1f}%'})
+        .background_gradient(subset=['Incidenza Magazzino (%)'], cmap='RdYlGn_r')
+    )
+    st.dataframe(styled, use_container_width=True, height=600)
+    
     st.markdown("---")
     
     colA, colB = st.columns(2)
@@ -199,13 +233,12 @@ if has_vendite:
         
     st.markdown("---")
     
-    st.subheader("Matrice Categoria vs Negozio (Giorni Medi a Scaffale)")
+    st.subheader("Matrice Categoria & Stagione vs Negozio (Giorni Medi a Scaffale)")
     if not df_filtered.empty:
-        # Non usiamo fillna(0) così i dati mancanti restano NaN
-        pivot_df = pd.pivot_table(df_filtered, values='Tempo_di_Scaffale_Giorni', index='Categoria', columns='Negozio', aggfunc='mean')
+        # Usiamo un MultiIndex per le righe: Categoria + Stagione
+        pivot_df = pd.pivot_table(df_filtered, values='Tempo_di_Scaffale_Giorni', index=['Categoria', 'Stagione'], columns='Negozio', aggfunc='mean')
         st.write("Puoi ordinare e scorrere la tabella. I colori caldi (rosso) indicano giacenze molto lunghe. Le celle nere/scure indicano che non c'è stato alcun incrocio/vendita.")
         
-        # Applichiamo il gradiente solo ai valori validi, i NaN avranno lo sfondo nero
         styled_df = (pivot_df.style
             .background_gradient(cmap='RdYlGn_r', axis=None)
             .highlight_null(color='#111111')
@@ -217,9 +250,9 @@ if has_vendite:
 
     st.markdown("---")
     
-    st.subheader("Matrice Linea vs Negozio (Giorni Medi a Scaffale)")
+    st.subheader("Matrice Linea & Stagione vs Negozio (Giorni Medi a Scaffale)")
     if not df_filtered.empty:
-        pivot_df2 = pd.pivot_table(df_filtered, values='Tempo_di_Scaffale_Giorni', index='Linea', columns='Negozio', aggfunc='mean')
+        pivot_df2 = pd.pivot_table(df_filtered, values='Tempo_di_Scaffale_Giorni', index=['Linea', 'Stagione'], columns='Negozio', aggfunc='mean')
         styled_df2 = (pivot_df2.style
             .background_gradient(cmap='RdYlGn_r', axis=None)
             .highlight_null(color='#111111')
@@ -231,9 +264,9 @@ if has_vendite:
 
     st.markdown("---")
     
-    st.subheader("Matrice Produttore vs Negozio (Giorni Medi a Scaffale)")
+    st.subheader("Matrice Produttore & Stagione vs Negozio (Giorni Medi a Scaffale)")
     if not df_filtered.empty:
-        pivot_df3 = pd.pivot_table(df_filtered, values='Tempo_di_Scaffale_Giorni', index='Produttore', columns='Negozio', aggfunc='mean')
+        pivot_df3 = pd.pivot_table(df_filtered, values='Tempo_di_Scaffale_Giorni', index=['Produttore', 'Stagione'], columns='Negozio', aggfunc='mean')
         styled_df3 = (pivot_df3.style
             .background_gradient(cmap='RdYlGn_r', axis=None)
             .highlight_null(color='#111111')
