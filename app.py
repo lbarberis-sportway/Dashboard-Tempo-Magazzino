@@ -238,48 +238,93 @@ if has_vendite:
         
     st.markdown("---")
     
-    st.subheader("Matrice Categoria & Stagione vs Negozio (Giorni Medi a Scaffale)")
-    if not df_filtered.empty:
-        # Usiamo un MultiIndex per le righe: Categoria + Stagione
-        pivot_df = pd.pivot_table(df_filtered, values='Tempo_di_Scaffale_Giorni', index=['Categoria', 'Stagione'], columns='Negozio', aggfunc='mean')
-        st.write("Puoi ordinare e scorrere la tabella. I colori caldi (rosso) indicano giacenze molto lunghe. Le celle nere/scure indicano che non c'è stato alcun incrocio/vendita.")
+    tab_scaffale, tab_magazzino = st.tabs(["Giorni Medi a Scaffale", "Giorni Medi in Magazzino"])
+
+    with tab_scaffale:
+        st.subheader("Matrice Categoria & Stagione vs Negozio (Giorni Medi)")
+        if not df_filtered.empty:
+            pivot_df = pd.pivot_table(df_filtered, values='Tempo_di_Scaffale_Giorni', index=['Categoria', 'Stagione'], columns='Negozio', aggfunc='mean')
+            st.write("Puoi ordinare e scorrere la tabella. I colori caldi (rosso) indicano giacenze molto lunghe. Le celle nere/scure indicano che non c'è stato alcun incrocio/vendita.")
+            
+            styled_df = (pivot_df.style
+                .background_gradient(cmap='RdYlGn_r', axis=None)
+                .highlight_null(color='#111111')
+                .format(lambda x: format_it(x, 1) if pd.notna(x) else "-")
+            )
+            st.dataframe(styled_df, use_container_width=True, height=600)
+        else:
+            st.info("Nessun dato disponibile.")
+
+        st.markdown("---")
         
-        styled_df = (pivot_df.style
-            .background_gradient(cmap='RdYlGn_r', axis=None)
-            .highlight_null(color='#111111')
-            .format(lambda x: format_it(x, 1) if pd.notna(x) else "-")
-        )
-        st.dataframe(styled_df, use_container_width=True, height=600)
-    else:
-        st.info("Nessun dato disponibile.")
+        st.subheader("Matrice Linea & Stagione vs Negozio (Giorni Medi)")
+        if not df_filtered.empty:
+            pivot_df2 = pd.pivot_table(df_filtered, values='Tempo_di_Scaffale_Giorni', index=['Linea', 'Stagione'], columns='Negozio', aggfunc='mean')
+            styled_df2 = (pivot_df2.style
+                .background_gradient(cmap='RdYlGn_r', axis=None)
+                .highlight_null(color='#111111')
+                .format(lambda x: format_it(x, 1) if pd.notna(x) else "-")
+            )
+            st.dataframe(styled_df2, use_container_width=True, height=600)
+        else:
+            st.info("Nessun dato disponibile.")
 
-    st.markdown("---")
-    
-    st.subheader("Matrice Linea & Stagione vs Negozio (Giorni Medi a Scaffale)")
-    if not df_filtered.empty:
-        pivot_df2 = pd.pivot_table(df_filtered, values='Tempo_di_Scaffale_Giorni', index=['Linea', 'Stagione'], columns='Negozio', aggfunc='mean')
-        styled_df2 = (pivot_df2.style
-            .background_gradient(cmap='RdYlGn_r', axis=None)
-            .highlight_null(color='#111111')
-            .format(lambda x: format_it(x, 1) if pd.notna(x) else "-")
-        )
-        st.dataframe(styled_df2, use_container_width=True, height=600)
-    else:
-        st.info("Nessun dato disponibile.")
+        st.markdown("---")
+        
+        st.subheader("Matrice Produttore & Stagione vs Negozio (Giorni Medi)")
+        if not df_filtered.empty:
+            pivot_df3 = pd.pivot_table(df_filtered, values='Tempo_di_Scaffale_Giorni', index=['Produttore', 'Stagione'], columns='Negozio', aggfunc='mean')
+            styled_df3 = (pivot_df3.style
+                .background_gradient(cmap='RdYlGn_r', axis=None)
+                .highlight_null(color='#111111')
+                .format(lambda x: format_it(x, 1) if pd.notna(x) else "-")
+            )
+            st.dataframe(styled_df3, use_container_width=True, height=600)
+        else:
+            st.info("Nessun dato disponibile.")
 
-    st.markdown("---")
-    
-    st.subheader("Matrice Produttore & Stagione vs Negozio (Giorni Medi a Scaffale)")
-    if not df_filtered.empty:
-        pivot_df3 = pd.pivot_table(df_filtered, values='Tempo_di_Scaffale_Giorni', index=['Produttore', 'Stagione'], columns='Negozio', aggfunc='mean')
-        styled_df3 = (pivot_df3.style
-            .background_gradient(cmap='RdYlGn_r', axis=None)
-            .highlight_null(color='#111111')
-            .format(lambda x: format_it(x, 1) if pd.notna(x) else "-")
-        )
-        st.dataframe(styled_df3, use_container_width=True, height=600)
-    else:
-        st.info("Nessun dato disponibile.")
+    with tab_magazzino:
+        st.subheader("Matrice Categoria & Stagione vs Negozio (Giorni Medi)")
+        if not df_filtered.empty:
+            pivot_df_m = pd.pivot_table(df_filtered, values='Tempo_di_Stock_Giorni', index=['Categoria', 'Stagione'], columns='Negozio', aggfunc='mean')
+            st.write("Puoi ordinare e scorrere la tabella. I colori caldi (rosso) indicano giacenze molto lunghe. Le celle nere/scure indicano che non c'è stato alcun incrocio/vendita.")
+            
+            styled_df_m = (pivot_df_m.style
+                .background_gradient(cmap='RdYlGn_r', axis=None)
+                .highlight_null(color='#111111')
+                .format(lambda x: format_it(x, 1) if pd.notna(x) else "-")
+            )
+            st.dataframe(styled_df_m, use_container_width=True, height=600)
+        else:
+            st.info("Nessun dato disponibile.")
+
+        st.markdown("---")
+        
+        st.subheader("Matrice Linea & Stagione vs Negozio (Giorni Medi)")
+        if not df_filtered.empty:
+            pivot_df2_m = pd.pivot_table(df_filtered, values='Tempo_di_Stock_Giorni', index=['Linea', 'Stagione'], columns='Negozio', aggfunc='mean')
+            styled_df2_m = (pivot_df2_m.style
+                .background_gradient(cmap='RdYlGn_r', axis=None)
+                .highlight_null(color='#111111')
+                .format(lambda x: format_it(x, 1) if pd.notna(x) else "-")
+            )
+            st.dataframe(styled_df2_m, use_container_width=True, height=600)
+        else:
+            st.info("Nessun dato disponibile.")
+
+        st.markdown("---")
+        
+        st.subheader("Matrice Produttore & Stagione vs Negozio (Giorni Medi)")
+        if not df_filtered.empty:
+            pivot_df3_m = pd.pivot_table(df_filtered, values='Tempo_di_Stock_Giorni', index=['Produttore', 'Stagione'], columns='Negozio', aggfunc='mean')
+            styled_df3_m = (pivot_df3_m.style
+                .background_gradient(cmap='RdYlGn_r', axis=None)
+                .highlight_null(color='#111111')
+                .format(lambda x: format_it(x, 1) if pd.notna(x) else "-")
+            )
+            st.dataframe(styled_df3_m, use_container_width=True, height=600)
+        else:
+            st.info("Nessun dato disponibile.")
 
 else:
     colA, colB = st.columns(2)
