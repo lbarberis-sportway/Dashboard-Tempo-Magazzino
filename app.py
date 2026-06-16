@@ -99,8 +99,6 @@ sel_linea = st.sidebar.multiselect("Linea", get_unique(df_matched, 'Linea'), def
 sel_stagione = st.sidebar.multiselect("Stagione", get_unique(df_matched, 'Stagione'), default=[])
 sel_produttore = st.sidebar.multiselect("Produttore", get_unique(df_matched, 'Produttore'), default=[])
 
-st.sidebar.info("💡 Lascia il campo vuoto per includere tutti i valori.")
-
 # Applicazione Filtri
 df_filtered = df_matched.copy()
 
@@ -136,6 +134,10 @@ if has_vendite and df_vendite is not None:
         df_vendite_filtered = df_vendite_filtered[df_vendite_filtered['Stagione'].isin(sel_stagione)]
     if sel_produttore:
         df_vendite_filtered = df_vendite_filtered[df_vendite_filtered['Produttore'].isin(sel_produttore)]
+
+prima_entrata = df_filtered['Data_Entrata'].min()
+if pd.notna(prima_entrata):
+    st.sidebar.info(f"📅 Prima entrata in magazzino: {prima_entrata.strftime('%d/%m/%Y')}")
 
 st.markdown("---")
 
@@ -201,6 +203,7 @@ if has_vendite:
     df_cat_detail['Incidenza Magazzino (%)'] = (
         df_cat_detail['Tempo Magazzino (gg)'] / df_cat_detail['Lead Time Totale (gg)'] * 100
     ).round(1)
+    df_cat_detail = df_cat_detail.sort_values('Incidenza Magazzino (%)', ascending=False)
     styled = (df_cat_detail.style
         .format({'Tempo Magazzino (gg)': '{:.1f}', 'Tempo Scaffale (gg)': '{:.1f}',
                  'Lead Time Totale (gg)': '{:.1f}', 'Incidenza Magazzino (%)': '{:.1f}%'})
