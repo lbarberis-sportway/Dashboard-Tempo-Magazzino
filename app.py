@@ -205,8 +205,10 @@ if has_vendite:
     ).round(1)
     df_cat_detail = df_cat_detail.sort_values('Incidenza Magazzino (%)', ascending=False)
     styled = (df_cat_detail.style
-        .format({'Tempo Magazzino (gg)': '{:.1f}', 'Tempo Scaffale (gg)': '{:.1f}',
-                 'Lead Time Totale (gg)': '{:.1f}', 'Incidenza Magazzino (%)': '{:.1f}%'})
+        .format({'Tempo Magazzino (gg)': lambda x: format_it(x, 1),
+                 'Tempo Scaffale (gg)': lambda x: format_it(x, 1),
+                 'Lead Time Totale (gg)': lambda x: format_it(x, 1),
+                 'Incidenza Magazzino (%)': lambda x: f"{format_it(x, 1)}%"})
         .background_gradient(subset=['Incidenza Magazzino (%)'], cmap='RdYlGn_r')
     )
     st.dataframe(styled, use_container_width=True, height=600)
