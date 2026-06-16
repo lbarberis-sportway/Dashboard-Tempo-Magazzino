@@ -121,36 +121,41 @@ def load_and_process_data(entrate_path, uscite_path, vendite_path=None):
             
             if barcode in uscite_dict:
                 queue = uscite_dict[barcode]
-                while qta_vendita > 0 and queue:
-                    uscita = queue[0]
-                    
-                    qta_da_scalare = min(qta_vendita, uscita['Quantita_Disponibile'])
-                    
-                    tempo_scaffale = max((data_vendita - uscita['Data_Uscita']).days, 0)
-                    tempo_totale = uscita['Tempo_di_Stock_Giorni'] + tempo_scaffale
-                    
-                    full_lifecycle_records.append({
-                        'Barcode': barcode,
-                        'Articolo': uscita['Articolo'],
-                        'Categoria': uscita['Categoria'],
-                        'Linea': uscita['Linea'],
-                        'Stagione': uscita['Stagione'],
-                        'Produttore': uscita['Produttore'],
-                        'Data_Entrata': uscita['Data_Entrata'],
-                        'Data_Uscita': uscita['Data_Uscita'],
-                        'Data_Vendita': data_vendita,
-                        'Negozio': negozio_vendita,
-                        'Quantita': qta_da_scalare,
-                        'Tempo_di_Stock_Giorni': uscita['Tempo_di_Stock_Giorni'],
-                        'Tempo_di_Scaffale_Giorni': tempo_scaffale,
-                        'Lead_Time_Totale_Giorni': tempo_totale
-                    })
-                    
-                    qta_vendita -= qta_da_scalare
-                    uscita['Quantita_Disponibile'] -= qta_da_scalare
-                    
-                    if uscita['Quantita_Disponibile'] <= 0:
-                        queue.pop(0)
+                
+                if qta_vendita > 0:
+                    while qta_vendita > 0 and queue:
+                        uscita = queue[0]
+                        
+                        qta_da_scalare = min(qta_vendita, uscita['Quantita_Disponibile'])
+                        
+                        tempo_scaffale = max((data_vendita - uscita['Data_Uscita']).days, 0)
+                        tempo_totale = uscita['Tempo_di_Stock_Giorni'] + tempo_scaffale
+                        
+                        full_lifecycle_records.append({
+                            'Barcode': barcode,
+                            'Articolo': uscita['Articolo'],
+                            'Categoria': uscita['Categoria'],
+                            'Linea': uscita['Linea'],
+                            'Stagione': uscita['Stagione'],
+                            'Produttore': uscita['Produttore'],
+                            'Data_Entrata': uscita['Data_Entrata'],
+                            'Data_Uscita': uscita['Data_Uscita'],
+                            'Data_Vendita': data_vendita,
+                            'Negozio': negozio_vendita,
+                            'Quantita': qta_da_scalare,
+                            'Tempo_di_Stock_Giorni': uscita['Tempo_di_Stock_Giorni'],
+                            'Tempo_di_Scaffale_Giorni': tempo_scaffale,
+                            'Lead_Time_Totale_Giorni': tempo_totale
+                        })
+                        
+                        qta_vendita -= qta_da_scalare
+                        uscita['Quantita_Disponibile'] -= qta_da_scalare
+                        
+                        if uscita['Quantita_Disponibile'] <= 0:
+                            queue.pop(0)
+                elif qta_vendita < 0 and queue:
+                    qta_reso = -qta_vendita
+                    queue[-1]['Quantita_Disponibile'] += qta_reso
                         
         df_matched = pd.DataFrame(full_lifecycle_records)
         
